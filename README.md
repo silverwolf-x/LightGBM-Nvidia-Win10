@@ -77,7 +77,7 @@ Boost version: boost_1_85_0（最新）
 
 ​	安装到默认路径`C:\local\boost_1_85_0\`后可以不管环境变量的设置
 
-## 2. 编译与报错处理
+### 2. 编译与报错处理
 
 这里不同于[Win10 环境下，LightGBM GPU 版本的安装 - 知乎 (zhihu.com)](https://zhuanlan.zhihu.com/p/55259112)，我们选择直接借助官方的`LightGBM/build-python.sh`进行编译
 
@@ -92,10 +92,10 @@ git clone --recursive https://github.com/Microsoft/LightGBM
 转到LightGBM文件夹下，打开git终端，运行下列命令。其中boost-include-dir换成你自己的，并且要用“**/**”输入地址
 
 ```
-sh ./build-python.sh bdist_wheel  --gpu  --boost-include-dir=C:/local/boost_1_85_0/
+sh ./build-python.sh bdist_wheel --gpu --boost-include-dir=C:/local/boost_1_85_0/
 ```
 
-以下是报错和处理
+报错：
 
 >找不到 Windows SDK 版本 xxxx。请安装所 
 >需版本的 Windows SDK，或者在项目属性页中或通过右键单击解决方案并选择“重定解决方案目标”来更改 SDK 版本。
@@ -103,6 +103,7 @@ sh ./build-python.sh bdist_wheel  --gpu  --boost-include-dir=C:/local/boost_1_85
 [Visual Studio2019报错 错误 MSB8036 找不到 Windows SDK 版本 10.0.19041.0的解决方法 - 知乎 (zhihu.com)](https://zhuanlan.zhihu.com/p/496051774)
 
 <details><summary>一些成功的运行日志</summary>
+
 ```text
 --- building wheel ---  
 * Creating isolated environment: venv+pip...
@@ -160,7 +161,7 @@ cleaning up
 
 生成的包在`\dist`中
 
-## 3. 安装与测试
+### 3. 安装与测试
 
 执行绝对路径安装,例如
 
@@ -169,3 +170,37 @@ pip install C:\LightGBM\dist\lightgbm-4.3.0.99-py3-none-win_amd64.whl
 ```
 
 然后执行`test.ipynb`示例即可
+
+## 关于GPU的更多参数选项
+
+[GPU SDK Correspondence and Device Targeting Table — LightGBM 4.3.0 documentation](https://lightgbm.readthedocs.io/en/v4.3.0/GPU-Targets.html)
+
+## 一些发现
+
+实际上，直接`pip install lightgbm`下载官方包后，似乎可以直接自动编译？由于我的笔记本有双显卡
+
+- AMD Radeon 780M Graphic（核心显卡）
+- Nvidia RTX 4050 Laptop（独立显卡）
+
+在非独显直连的模式下，第一次运行`test.ipynb`后显示：
+
+```
+4.3.0
+[LightGBM] [Info] Number of positive: 29, number of negative: 21
+[LightGBM] [Info] This is the GPU trainer!!
+[LightGBM] [Info] Total Bins 36
+[LightGBM] [Info] Number of data points in the train set: 50, number of used features: 2
+[LightGBM] [Info] Using GPU Device: gfx1103, Vendor: Advanced Micro Devices, Inc.
+[LightGBM] [Info] Compiling OpenCL Kernel with 64 bins...
+[LightGBM] [Info] GPU programs have been built
+[LightGBM] [Info] Size of histogram bin entry: 8
+[LightGBM] [Info] 2 dense feature groups (0.00 MB) transferred to GPU in 0.000370 secs. 0 sparse feature groups
+[LightGBM] [Info] [binary:BoostFromScore]: pavg=0.580000 -> initscore=0.322773
+[LightGBM] [Info] Start training from score 0.322773
+[LightGBM] [Warning] No further splits with positive gain, best gain: -inf
+```
+
+有一个很快的自动编译（我只安装了minimal版本的驱动），编译完成后，即使调整超参数`gpu_platform_id`也无法再切换为Nvidia
+
+
+
