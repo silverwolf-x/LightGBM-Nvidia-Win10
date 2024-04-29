@@ -202,5 +202,50 @@ pip install C:\LightGBM\dist\lightgbm-4.3.0.99-py3-none-win_amd64.whl
 
 有一个很快的自动编译（我只安装了minimal版本的驱动），编译完成后，即使调整超参数`gpu_platform_id`也无法再切换为Nvidia
 
+## 碎碎念
 
+其实事情的背景是使用`autogluon`时，总是提示
 
+```
+"Warning: GPU mode might not be installed for LightGBM, GPU training raised an exception. Falling back to CPU training..."
+"Refer to LightGBM GPU documentation: https://github.com/Microsoft/LightGBM/tree/master/python-package#build-gpu-version"
+"One possible method is:"
+"\tpip uninstall lightgbm -y"
+"\tpip install lightgbm --install-option=--gpu"
+```
+
+以为是版本问题，于是折腾一大圈来编译安装，结果仍然报错。
+
+最后翻查源码，原来是在训练lightgbm模型时，只要报错，就一律改为CPU运行。至于是什么报错，被掩盖起来不知道。
+
+```python
+try:
+    self.model = train_lgb_model(early_stopping_callback_kwargs=
+                                 early_stopping_callback_kwargs,
+                                 **train_params)
+except LightGBMError:
+    if train_params["params"].get("device", "cpu") != "gpu":
+        raise
+    else:
+        logger.warning(
+            "Warning: GPU mode might not be installed for LightGBM, GPU training raised an exception. Falling back to CPU training..."
+            "Refer to LightGBM GPU documentation: https://github.com/Microsoft/LightGBM/tree/master/python-package#build-gpu-version"
+            "One possible method is:"
+            "\tpip uninstall lightgbm -y"
+            "\tpip install lightgbm --install-option=--gpu")
+        train_params["params"]["device"] = "cpu"
+        self.model = train_lgb_model(
+            early_stopping_callback_kwargs=
+            early_stopping_callback_kwargs,
+            **train_params)
+```
+
+只有对`.py文件主动停止运行时，才能看到原来是分箱问题
+
+```
+lightgbm.basic.LightGBMError: bin size 6978 cannot run on GPU
+```
+
+这个bug上游已经新建文件夹了，还没修好[[Bug\] LightGBMError: bin size 257 cannot run on GPU · Issue #3339 · microsoft/LightGBM (github.com)](https://github.com/microsoft/LightGBM/issues/3339)只能作罢。
+
+> 有一说一，有时GPU训练不一定比CPU快多少
