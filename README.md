@@ -1,5 +1,10 @@
 # LightGBM GPU
 
+
+此贴完结：windows的lightgbm只能用OpenCL版本，现在还不支持CUDA版本
+
+CUDA版本只支持linux，届时也要重新编译才能在linux用CUDA版本的lightgbm
+--- 
 20240429编译nvidia gpu成功存档
 
 这里提供了GPU编译后的wheel，直接安装后在`test.ipynb`中测试，运行成功输出示例：
@@ -12,6 +17,8 @@
 [LightGBM] [Info] Compiling OpenCL Kernel with 64 bins...
 [LightGBM] [Info] GPU programs have been built
 ```
+
+
 
 ## Info
 
